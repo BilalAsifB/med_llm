@@ -80,56 +80,6 @@ class Crawl4AIMedicineCrawler:
                 links.append(clean_url)
 
         return list(set(links))
-    
-    def structure_data(self, data: dict, link: str) -> Document:
-        doc_id = utils.generate_random_hex(length=32)
-        return Document(
-            id=doc_id,
-            metadata=DocumentMetadata(
-                id=doc_id,
-                url=link,
-                name=data["name"],
-                properties={
-                    "price": data.get("price", ""),
-                    "specification": data.get("specification", ""),
-                    "usage_and_safety": data.get("usage_and_safety", ""),  
-                    "precautions": data.get("precautions", ""),
-                    "warnings": data.get("warnings", ""),
-                    "additional_information": data.get("additional_information", ""),
-                }
-            ),
-        )
-
-    # async def process_link(
-    #     self,   
-    #     crawler: AsyncWebCrawler,
-    #     link: str,
-    #     session_id: str 
-    # ) -> dict:
-    #     logger.info(f"Processing link: {link}")
-        
-    #     extraction_strategy = utils.get_json_extraction_strategy()
-    #     result = await crawler.arun(
-    #         url=link,
-    #         crawler=CrawlerRunConfig(
-    #             cache_mode=CacheMode.BYPASS,
-    #             extraction_strategy=extraction_strategy,
-    #             session_id=session_id,
-    #             check_robots_txt=True,
-    #     )
-    
-    #     if not (result.success and result.extracted_content):
-    #         logger.error(f"Failed to extract data from {link}: {result.error_message}")
-    #         return {}
-        
-    #     extracted_data = json.loads(result.extracted_content)
-    #     if not extracted_data:
-    #         logger.warning(f"No data extracted from {link}")
-    #         return {}
-        
-    #     data = extracted_data[0]
-
-    #     return self.structure_data(data, link)
 
     async def scrape_with_playwright(self, url: str) -> dict:
         async with async_playwright() as p:
@@ -207,11 +157,6 @@ class Crawl4AIMedicineCrawler:
                 
                 logger.info(f"Found {len(links)} product links on page {page_number}")
                 for link in links:
-                    # medicine = await self.process_link(
-                    #     crawler=crawler,
-                    #     link=link,
-                    #     session_id=session_id
-                    # )
                     medicine = await self.scrape_with_playwright(link)
                     all_medicines.append(medicine)
 
