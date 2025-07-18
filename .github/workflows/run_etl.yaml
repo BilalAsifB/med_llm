@@ -2,8 +2,8 @@ name: Run ETL Pipeline Weekly
 
 on:
   schedule:
-    - cron: '0 0 * * 5'   # Every Friday at 00:00 UTC
-  workflow_dispatch:     # Manual trigger
+    - cron: '0 0 * * 5'  # Every Friday at 00:00 UTC
+  workflow_dispatch:
 
 jobs:
   run-crawler:
@@ -16,22 +16,21 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
+          python-version: '3.12'
 
       - name: Install uv
-        run: pip install uv
+        run: |
+          pip install uv
 
-      - name: Cache Python dependencies
-        uses: actions/cache@v3
-        with:
-          path: ~/.cache/uv
-          key: ${{ runner.os }}-uv-${{ hashFiles('pyproject.toml', 'uv.lock') }}
-          restore-keys: ${{ runner.os }}-uv-
-
-      - name: Install dependencies
-        run: uv pip install .
+      - name: Create .venv and install dependencies
+        run: |
+          uv venv .venv
+          source .venv/bin/activate
+          uv pip install -e .
 
       - name: Run ETL pipeline
         env:
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
-        run: python apps/med_llm_offline/run_etl.py
+        run: |
+          source .venv/bin/activate
+          python apps/med_llm_offline/run_etl.py
