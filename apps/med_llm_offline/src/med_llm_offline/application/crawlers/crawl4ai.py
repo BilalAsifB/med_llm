@@ -1,6 +1,6 @@
 import asyncio
 
-import json
+import random
 
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse
@@ -34,6 +34,7 @@ class Crawl4AIMedicineCrawler:
         """Initialize the crawler with the maximum number of concurrent requests and base URL."""
         self.max_concurrent_requests = max_concurrent_requests
         self.base_url = base_url
+        self.failed_urls = []
 
     def __call__(self) -> list[dict]:
         """Run the crawler and return the scraped data."""
@@ -80,56 +81,6 @@ class Crawl4AIMedicineCrawler:
                 links.append(clean_url)
 
         return list(set(links))
-    
-    def structure_data(self, data: dict, link: str) -> Document:
-        doc_id = utils.generate_random_hex(length=32)
-        return Document(
-            id=doc_id,
-            metadata=DocumentMetadata(
-                id=doc_id,
-                url=link,
-                name=data["name"],
-                properties={
-                    "price": data.get("price", ""),
-                    "specification": data.get("specification", ""),
-                    "usage_and_safety": data.get("usage_and_safety", ""),  
-                    "precautions": data.get("precautions", ""),
-                    "warnings": data.get("warnings", ""),
-                    "additional_information": data.get("additional_information", ""),
-                }
-            ),
-        )
-
-    # async def process_link(
-    #     self,   
-    #     crawler: AsyncWebCrawler,
-    #     link: str,
-    #     session_id: str 
-    # ) -> dict:
-    #     logger.info(f"Processing link: {link}")
-        
-    #     extraction_strategy = utils.get_json_extraction_strategy()
-    #     result = await crawler.arun(
-    #         url=link,
-    #         crawler=CrawlerRunConfig(
-    #             cache_mode=CacheMode.BYPASS,
-    #             extraction_strategy=extraction_strategy,
-    #             session_id=session_id,
-    #             check_robots_txt=True,
-    #     )
-    
-    #     if not (result.success and result.extracted_content):
-    #         logger.error(f"Failed to extract data from {link}: {result.error_message}")
-    #         return {}
-        
-    #     extracted_data = json.loads(result.extracted_content)
-    #     if not extracted_data:
-    #         logger.warning(f"No data extracted from {link}")
-    #         return {}
-        
-    #     data = extracted_data[0]
-
-    #     return self.structure_data(data, link)
 
     async def scrape_with_playwright(self, url: str) -> dict:
         async with async_playwright() as p:
@@ -177,10 +128,10 @@ class Crawl4AIMedicineCrawler:
                 )
             except Exception as e:
                 logger.error(f"Failed to scrape {url}: {e}")
+                self.failed_urls.append(url)
                 return {}
             finally:
                 await browser.close()
-
 
     async def __crawl(self) -> list[dict]:
         browser_congig = utils.get_browser_config()
@@ -207,16 +158,46 @@ class Crawl4AIMedicineCrawler:
                 
                 logger.info(f"Found {len(links)} product links on page {page_number}")
                 for link in links:
-                    # medicine = await self.process_link(
-                    #     crawler=crawler,
-                    #     link=link,
-                    #     session_id=session_id
-                    # )
                     medicine = await self.scrape_with_playwright(link)
-                    all_medicines.append(medicine)
+                    if medicine:
+                        all_medicines.append(medicine)
 
                 await asyncio.sleep(2)
                 page_number += 1
+
+        if self.failed_urls:
+            logger.error(f"Failed to scrape {len(self.failed_urls)} urls.")
+            logger.info("Retrying failed URLs...")
+
+            MAX_TRIES = 3
+            retry_counts = {}
+            retry_failed = []
+            failed_urls = self.failed_urls.copy()
+            self.failed_urls = []
+
+            while failed_urls:
+                url = failed_urls.pop(0)
+                count = retry_counts.get(url, 0)
+
+                if count >= MAX_TRIES:
+                    retry_failed.append(url)
+                    logger.error(f"Max retries reached for {url}. Skipping.")
+                    continue
+                
+                logger.info(f"Retrying {url} (Attempt {count + 1})")
+                medicine = await self.scrape_with_playwright(url)
+                
+                if medicine:    
+                    all_medicines.append(medicine)
+                    logger.info(f"Successfully scraped {url} on attempt {count + 1}.")
+                else:
+                    retry_counts[url] = count + 1
+                    failed_urls.append(url)
+
+                    wait = min(2 ** count + random.uniform(0.1, 1.0), 10)
+                    logger.warning(f"Retry {count + 1} failed for {url}, waiting {wait:.2f} seconds before next attempt.")
+
+        logger.info(f"Final skipped URLs after {MAX_TRIES}: {retry_failed}")
 
         logger.info(f"Crawled {len(all_medicines)} medicines.")
         return all_medicines

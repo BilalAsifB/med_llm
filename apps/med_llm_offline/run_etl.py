@@ -2,12 +2,11 @@
 
 import yaml
 from pathlib import Path
+from pydantic import BaseModel
+
 from pipelines.etl import etl
 
 CONFIG_PATH = Path(__file__).parent / "configs" / "etl.yaml"
-
-from pathlib import Path
-from pydantic import BaseModel
 
 
 class ETLConfig(BaseModel):
@@ -28,7 +27,6 @@ if __name__ == "__main__":
     config = load_config(CONFIG_PATH)
 
     etl(
-        data_dir=config.data_dir,
         load_collection_name=config.load_collection_name,
         max_workers=config.max_workers,
         base_url=config.base_url,

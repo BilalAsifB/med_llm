@@ -1,5 +1,4 @@
 parameters:
-  data_dir: data/
   load_collection_name: medicines
   max_workers: 5
   base_url: "https://www.dvago.pk"
