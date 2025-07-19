@@ -43,6 +43,9 @@ jobs:
         working-directory: apps/med_llm_offline
         env:
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          COMET_API_KEY: ${{ secrets.COMET_API_KEY }}  
+          COMET_PROJECT: ${{ secrets.COMET_PROJECT }}  
+          MONGODB_DATABASE_NAME: ${{ secrets.MONGODB_DATABASE_NAME }}
         run: |
           source .venv/bin/activate
           python run_etl.py
