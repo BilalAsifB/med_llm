@@ -2,8 +2,8 @@ name: Run ETL Pipeline Weekly
 
 on:
   schedule:
-    - cron: '0 0 * * 5'   # Every Friday at 00:00 UTC
-  workflow_dispatch:     # Manual trigger
+    - cron: '0 0 * * 5'  # Every Friday at 00:00 UTC
+  workflow_dispatch:
 
 jobs:
   run-crawler:
@@ -20,7 +20,7 @@ jobs:
 
       - name: Install uv
         run: pip install uv
-
+      
       - name: Cache Python dependencies
         uses: actions/cache@v3
         with:
@@ -35,4 +35,5 @@ jobs:
       - name: Run ETL pipeline
         env:
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
-        run: python apps/med_llm_offline/run_etl.py
+        run: |
+          python apps/med_llm_offline/run_etl.py
