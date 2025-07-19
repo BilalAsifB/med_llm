@@ -38,7 +38,13 @@ jobs:
             source .venv/bin/activate
           fi
           uv pip install -e .
-
+      
+      - name: Install Playwright browsers
+        working-directory: apps/med_llm_offline
+        run: |
+          source .venv/bin/activate
+          playwright install
+          
       - name: Run ETL pipeline
         working-directory: apps/med_llm_offline
         env:
