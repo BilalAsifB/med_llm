@@ -13,3 +13,16 @@ dependencies = [
     "pyyaml>=6.0.2",
     "zenml==0.84.0",
 ]
+
+[build-system]
+requires = ["setuptools", "uv"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["apps.med_llm_offline"]
+
+[tool.setuptools.package-dir]
+"" = "."
+
+[tool.setuptools.include-package-data]
+apps.med_llm_offline = true
