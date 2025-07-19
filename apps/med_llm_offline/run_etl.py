@@ -10,7 +10,6 @@ CONFIG_PATH = Path(__file__).parent / "configs" / "etl.yaml"
 
 
 class ETLConfig(BaseModel):
-    data_dir: Path
     load_collection_name: str
     max_workers: int 
     base_url: str 

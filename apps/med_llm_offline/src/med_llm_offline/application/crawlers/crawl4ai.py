@@ -136,7 +136,7 @@ class Crawl4AIMedicineCrawler:
     async def __crawl(self) -> list[dict]:
         browser_congig = utils.get_browser_config()
         session_id = "dvgao_crawler_session"
-        page_number = 1
+        page_number = 178 #temp
         all_medicines = []
 
         async with AsyncWebCrawler(config=browser_congig) as crawler:
@@ -197,7 +197,7 @@ class Crawl4AIMedicineCrawler:
                     wait = min(2 ** count + random.uniform(0.1, 1.0), 10)
                     logger.warning(f"Retry {count + 1} failed for {url}, waiting {wait:.2f} seconds before next attempt.")
 
-        logger.info(f"Final skipped URLs after {MAX_TRIES}: {retry_failed}")
+            logger.info(f"Final skipped URLs after {MAX_TRIES}: {retry_failed}")
 
         logger.info(f"Crawled {len(all_medicines)} medicines.")
         return all_medicines

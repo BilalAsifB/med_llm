@@ -14,6 +14,10 @@ def etl(
     max_workers: int = 10,
     base_url: str = "https://www.dvago.pk",
 ) -> None:
+    logger.info(
+        f"Starting ETL pipeline with max_workers={max_workers} and base_url={base_url}"
+    )
+    logger.info("Starting web crawling...")
     crawled_data = crawl(max_workers=max_workers, base_url=base_url)
 
     logger.info(
