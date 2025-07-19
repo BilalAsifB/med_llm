@@ -16,7 +16,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
+          python-version: '3.12'
 
       - name: Install uv
         run: pip install uv
@@ -25,11 +25,12 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/.cache/uv
-          key: ${{ runner.os }}-uv-${{ hashFiles('pyproject.toml', 'uv.lock') }}
+          key: ${{ runner.os }}-uv-${{ hashFiles('apps/med_llm_offline/pyproject.toml', 'apps/med_llm_offline/uv.lock') }}
           restore-keys: ${{ runner.os }}-uv-
 
       - name: Install dependencies
-        run: uv pip install .
+        working-directory: apps/med_llm_offline
+        run: uv pip install -e .
 
       - name: Run ETL pipeline
         env:
