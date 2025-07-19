@@ -136,7 +136,7 @@ class Crawl4AIMedicineCrawler:
     async def __crawl(self) -> list[dict]:
         browser_congig = utils.get_browser_config()
         session_id = "dvgao_crawler_session"
-        page_number = 178 #temp
+        page_number = 175 #temp
         all_medicines = []
 
         async with AsyncWebCrawler(config=browser_congig) as crawler:
