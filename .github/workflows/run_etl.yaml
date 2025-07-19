@@ -40,8 +40,8 @@ jobs:
           uv pip install -e .
 
       - name: Run ETL pipeline
+        working-directory: apps/med_llm_offline
         env:
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
         run: |
-          source .venv/bin/activate
           python run_etl.py
