@@ -43,4 +43,5 @@ jobs:
         env:
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
         run: |
-          python apps/med_llm_offline/run_etl.py
+          source .venv/bin/activate
+          python run_etl.py
