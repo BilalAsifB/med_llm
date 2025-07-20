@@ -31,27 +31,22 @@ jobs:
       - name: Install dependencies
         working-directory: apps/med_llm_offline
         run: |
-          if [ -d ".venv" ]; then
-            source .venv/bin/activate
-          else
-            uv venv
-            source .venv/bin/activate
-          fi
+          uv venv
+          source .venv/bin/activate
           uv pip install -e .
-      
-      - name: Install Playwright browsers
+
+      - name: test if the virtual environment is working
         working-directory: apps/med_llm_offline
         run: |
-          source .venv/bin/activate
-          playwright install
+          python main.py
           
-      - name: Run ETL pipeline
-        working-directory: apps/med_llm_offline
-        env:
-          MONGODB_URI: ${{ secrets.MONGODB_URI }}
-          COMET_API_KEY: ${{ secrets.COMET_API_KEY }}  
-          COMET_PROJECT: ${{ secrets.COMET_PROJECT }}  
-          MONGODB_DATABASE_NAME: ${{ secrets.MONGODB_DATABASE_NAME }}
-        run: |
-          source .venv/bin/activate
-          python run_etl.py
+      # - name: Run ETL pipeline
+      #   working-directory: apps/med_llm_offline
+      #   env:
+      #     MONGODB_URI: ${{ secrets.MONGODB_URI }}
+      #     COMET_API_KEY: ${{ secrets.COMET_API_KEY }}  
+      #     COMET_PROJECT: ${{ secrets.COMET_PROJECT }}  
+      #     MONGODB_DATABASE_NAME: ${{ secrets.MONGODB_DATABASE_NAME }}
+      #   run: |
+      #     source .venv/bin/activate
+      #     python run_etl.py
