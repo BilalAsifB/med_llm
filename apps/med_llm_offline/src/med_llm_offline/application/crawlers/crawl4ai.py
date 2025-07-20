@@ -169,7 +169,7 @@ class Crawl4AIMedicineCrawler:
             logger.error(f"Failed to scrape {len(self.failed_urls)} urls.")
             logger.info("Retrying failed URLs...")
 
-            MAX_TRIES = 3
+            MAX_TRIES = 1
             retry_counts = {}
             retry_failed = []
             failed_urls = self.failed_urls.copy()
