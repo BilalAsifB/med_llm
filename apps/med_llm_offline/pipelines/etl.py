@@ -20,11 +20,11 @@ def etl(
     logger.info("Starting web crawling...")
     crawled_data = crawl(max_workers=max_workers, base_url=base_url)
 
-    logger.info(
-        f"Saving crawled data to MongoDB collection '{load_collection_name}'"
-    ) 
-    ingest_to_mongodb(
-        models=crawled_data,
-        collection_name=load_collection_name,
-        clear_collection=True,
-    )   
+    # logger.info(
+    #     f"Saving crawled data to MongoDB collection '{load_collection_name}'"
+    # ) 
+    # ingest_to_mongodb(
+    #     models=crawled_data,
+    #     collection_name=load_collection_name,
+    #     clear_collection=True,
+    # )   
