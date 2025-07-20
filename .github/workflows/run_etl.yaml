@@ -36,19 +36,20 @@ jobs:
           uv pip install -e .
           python -m playwright install
 
-      # Grant temporary MongoDB access to this Github Action runner ip address
       - name: Get the public IP of this runner
         id: get_gh_runner_ip
         shell: bash
         run: |
           echo "ip_address=$(curl https://checkip.amazonaws.com)" >> "$GITHUB_OUTPUT"
-      - name: Setup MongoDB Atlas cli
+
+      - name: Setup MongoDB Atlas CLI
         uses: mongodb/atlas-github-action@v0.2.0
+
       - name: Add runner IP to MongoDB access list
         shell: bash
         run: |
-          atlas accessLists create ${{ steps.get_gh_runner_ip.outputs.ip_address }} --type ipAddress --projectId ${{ env.MONGODB_ATLAS_PROJECT_ID }} --comment  "Temporary access for GH Action"
-      
+          atlas accessLists create "${{ steps.get_gh_runner_ip.outputs.ip_address }}" --projectId "${{ env.MONGODB_ATLAS_PROJECT_ID }}" --comment "Temporary access for GH Action"
+
       - name: Run ETL pipeline
         working-directory: apps/med_llm_offline
         env:
@@ -60,7 +61,7 @@ jobs:
           source .venv/bin/activate
           python run_etl.py
 
-      - name: Remove GH runner IP from MongDB access list
+      - name: Remove GH runner IP from MongoDB access list
         shell: bash
         run: |
-          atlas accessLists delete ${{ steps.get_gh_runner_ip.outputs.ip_address }} --projectId ${{ env.MONGODB_ATLAS_PROJECT_ID }} --force
+          atlas accessLists delete "${{ steps.get_gh_runner_ip.outputs.ip_address }}" --projectId "${{ env.MONGODB_ATLAS_PROJECT_ID }}" --force
