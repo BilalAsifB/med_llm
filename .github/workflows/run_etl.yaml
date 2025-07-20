@@ -36,47 +36,43 @@ jobs:
           uv pip install -e .
           python -m playwright install
 
-      # --- Get the public IP of the GitHub Actions runner ---
-      - name: Get public IP
+      - name: Get GitHub Actions runner public IP
         id: get_ip
-        run: |
-          echo "ip_address=$(curl -s https://checkip.amazonaws.com)" >> "$GITHUB_OUTPUT"
+        run: echo "ip_address=$(curl -s https://checkip.amazonaws.com)" >> "$GITHUB_OUTPUT"
 
-      # --- Set up MongoDB Atlas CLI ---
-      - name: Set up MongoDB Atlas CLI
+      - name: Install MongoDB Atlas CLI
         uses: mongodb/atlas-github-action@v0.2.0
 
-      # --- Authenticate CLI using env vars ---
-      - name: Export Atlas credentials
+      - name: Authenticate Atlas CLI using API keys
         run: |
-          echo "ATLAS_PUBLIC_API_KEY=${{ secrets.ATLAS_PUBLIC_KEY }}" >> $GITHUB_ENV
-          echo "ATLAS_PRIVATE_API_KEY=${{ secrets.ATLAS_PRIVATE_KEY }}" >> $GITHUB_ENV
-          echo "ATLAS_PROJECT_ID=${{ secrets.MONGODB_ATLAS_PROJECT_ID }}" >> $GITHUB_ENV
+          atlas config init --publicApiKey "${{ secrets.ATLAS_PUBLIC_KEY }}" \
+                            --privateApiKey "${{ secrets.ATLAS_PRIVATE_KEY }}" \
+                            --output json
 
-      # --- Whitelist the runner's IP in Atlas ---
-      - name: Add GitHub Actions runner IP to MongoDB Atlas IP access list
+      - name: Add GitHub Actions runner IP to MongoDB Atlas
         run: |
           atlas accessLists create ${{ steps.get_ip.outputs.ip_address }} \
             --type ipAddress \
-            --projectId $ATLAS_PROJECT_ID \
-            --comment "Temporary access for GitHub Actions runner"
+            --projectId ${{ secrets.MONGODB_ATLAS_PROJECT_ID }} \
+            --comment "GitHub Actions temporary IP"
 
-      # --- Run ETL pipeline ---
       - name: Run ETL pipeline
         working-directory: apps/med_llm_offline
         env:
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
-          COMET_API_KEY: ${{ secrets.COMET_API_KEY }}  
-          COMET_PROJECT: ${{ secrets.COMET_PROJECT }}  
+          COMET_API_KEY: ${{ secrets.COMET_API_KEY }}
+          COMET_PROJECT: ${{ secrets.COMET_PROJECT }}
           MONGODB_DATABASE_NAME: ${{ secrets.MONGODB_DATABASE_NAME }}
         run: |
           source .venv/bin/activate
           python run_etl.py
 
-      # --- Remove GitHub Actions runner IP from Atlas after completion ---
       - name: Remove GitHub Actions runner IP from MongoDB Atlas
         if: always()
         run: |
+          atlas config init --publicApiKey "${{ secrets.ATLAS_PUBLIC_KEY }}" \
+                            --privateApiKey "${{ secrets.ATLAS_PRIVATE_KEY }}" \
+                            --output json
           atlas accessLists delete ${{ steps.get_ip.outputs.ip_address }} \
-            --projectId $ATLAS_PROJECT_ID \
+            --projectId ${{ secrets.MONGODB_ATLAS_PROJECT_ID }} \
             --force
