@@ -36,6 +36,9 @@ jobs:
           uv pip install -e .
           python -m playwright install
 
+      - name: Install CA certificates (fix SSL issue)
+        run: sudo apt-get update && sudo apt-get install -y ca-certificates
+        
       - name: Run ETL pipeline
         working-directory: apps/med_llm_offline
         env:
