@@ -1,5 +1,7 @@
 from typing import Generic, Type, TypeVar
 
+import certifi
+
 from bson import ObjectId
 from loguru import logger
 from pydantic import BaseModel
@@ -58,7 +60,7 @@ class MongoDBService(Generic[T]):
         self.mongodb_uri = mongodb_uri
 
         try:
-            self.client = MongoClient(mongodb_uri, appname="med_llm", tls=True, tlsAllowInvalidCertificates=False)
+            self.client = MongoClient(mongodb_uri, appname="med_llm", tls=True, tlsCAFile=certifi.where())
             self.client.admin.command("ping")
         except Exception as e:
             logger.error(f"Failed to initialize MongoDBService: {e}")
