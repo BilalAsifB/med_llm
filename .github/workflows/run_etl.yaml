@@ -34,6 +34,7 @@ jobs:
           uv venv
           source .venv/bin/activate
           uv pip install -e .
+          uv pip install certifi urllib3 --upgrade
           python -m playwright install
 
       - name: Install CA certificates (fix SSL issue)
