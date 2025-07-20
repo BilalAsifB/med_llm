@@ -9,9 +9,9 @@ jobs:
   run-crawler:
     runs-on: ubuntu-latest
     env:
+      MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_API_KEY }}
+      MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_API_KEY }}
       MONGODB_ATLAS_PROJECT_ID: ${{ secrets.MONGODB_ATLAS_PROJECT_ID }}
-      MONGODB_ATLAS_PUBLIC_API_KEY: ${{ secrets.MONGODB_ATLAS_PUBLIC_API_KEY }}
-      MONGODB_ATLAS_PRIVATE_API_KEY: ${{ secrets.MONGODB_ATLAS_PRIVATE_API_KEY }}
 
     steps:
       - name: Checkout repository
@@ -52,12 +52,15 @@ jobs:
       - name: Authenticate Atlas CLI
         shell: bash
         run: |
-          atlas config init --access-token-public-key "${{ env.MONGODB_ATLAS_PUBLIC_API_KEY }}" --access-token-private-key "${{ env.MONGODB_ATLAS_PRIVATE_API_KEY }}"
+          echo -e "${{ env.MONGODB_ATLAS_PUBLIC_KEY }}\n${{ env.MONGODB_ATLAS_PRIVATE_KEY }}" | atlas config init --non-interactive
 
       - name: Add runner IP to MongoDB access list
         shell: bash
         run: |
           atlas accessLists create "${{ steps.get_gh_runner_ip.outputs.ip_address }}" --projectId "${{ env.MONGODB_ATLAS_PROJECT_ID }}" --comment "Temporary access for GH Action"
+
+      - name: Wait for IP access list update
+        run: sleep 10
 
       - name: Run ETL pipeline
         working-directory: apps/med_llm_offline
