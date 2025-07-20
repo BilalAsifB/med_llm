@@ -34,6 +34,7 @@ jobs:
           uv venv
           source .venv/bin/activate
           uv pip install -e .
+          python -m playright install
 
       - name: Run ETL pipeline
         working-directory: apps/med_llm_offline
