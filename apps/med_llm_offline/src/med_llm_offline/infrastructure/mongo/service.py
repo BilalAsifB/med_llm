@@ -58,7 +58,7 @@ class MongoDBService(Generic[T]):
         self.mongodb_uri = mongodb_uri
 
         try:
-            self.client = MongoClient(mongodb_uri, appname="med_llm")
+            self.client = MongoClient(mongodb_uri, appname="med_llm", tls=True, tlsAllowInvalidCertificates=False)
             self.client.admin.command("ping")
         except Exception as e:
             logger.error(f"Failed to initialize MongoDBService: {e}")
